@@ -1,0 +1,28 @@
+#
+#0. test ssh access:  ssh -T git@github.com
+#
+#
+#
+# 1.
+# ssh git@github.com:dsegggg/wpress-inst.git
+# 2.
+# echo "# wpress-inst" >> README.md
+# git init
+# git add README.md
+# git commit -m "first commit"
+# git remote add origin https://github.com/dsegggg/wpress-inst.git
+# git push -u origin master
+
+# 3.
+# git remote add origin https://github.com/dsegggg/wpress-inst.git
+# git push -u origin master
+#
+echo "# wpress" > README.md
+git init
+git add README.md
+git commit -m "first commit"
+git remote add wpress git@github.com:dsegggg/wpress.git
+git push -u wpress  master
+# git config --global --edit
+# git config --global user.email "34576741+dsegggg@users.noreply.github.com"
+
