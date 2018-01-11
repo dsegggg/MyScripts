@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#--< wpinst-SOLO.sh >--------------------------------------------------#
+#--< SINGLE.sh >--------------------------------------------------#
 #=
 #= install wordpress single instance + mysql DB instance for wp user
 #= 
@@ -12,9 +12,120 @@
 #=  4.     
 #=      
 #---------------------------------------------------------------------#
-source .env-WP01-SINGLE.sh
-exit
+# source ./.SINGLE-env.sh
+# exit
+##!/bin/bash
+#- < env-SINGLE > ---------------------------------------------------#
+#=
+#= install wordpress single env
+#= 
+#=  PRE-REQUISITES:
+#=  0. mysql set up: 1 master user, some dbowner users
+#=  1. apache must be configured properly ( rewrite, .htaccess )
+#=  2. virtual hosting names must be set up under: /srv/www/html/<NAME>
+#=  3.  
+#=  4.     
+#=      
+#---------------------------------------------------------------------#
+# Source Load environment in XXX_inst.sh #.  ./env-XXX.sh
 
+pause () { echo -e "...\n";read -rsn1 -p"Press any key to continue . . .";echo; }
+#_____________________________________________#
+
+# { SINGLE,MULTIDOM }
+MODE='SINGLE'    
+#_____________________________________________#
+
+#-- DB params ------------------------------#
+SQL_ROOT='sqldbadmin'
+SQL_ROOTPW='SqlDbAdmin'
+WP_DBHOST='localhost'
+WP_DBNAME='wp1single'
+WP_DBUSR='wp1single'
+WP_DBPAS='Wp1Single.Pass'
+WP_OSUSR='dsegovic'
+WP_DBPREFIX='g1_'
+WP_COLATE='utf8_unicode_ci'
+
+#== WP Folders  ==#
+WP_BASE='/var/www/html'
+WP_LOG='/var/www/logs/single'
+WP_SUB='w1s'
+WP_URL='nuc'
+WP_TITLE='TEST_Single'
+
+#-- Wp admin(s) --------------------------------#
+WP_ADM_USER='admin0'
+WP_ADM_PASS='Admin0.pass'
+WP_ADM_EMAIL='admin0@example.com'
+WP_ADM0_DISPLAY='Super_0_Admin'
+
+WP_ADM1_USER='admin1'
+WP_ADM1_PASS='Admin1.pass'
+WP_ADM1_EMAIL='admin1@example.com'
+WP_ADM1_DISPLAY='Super_1_Admin'
+
+WP_USER1='user1'
+WP_USER1_PASS='User1.pass'
+WP_USER1_EMAIL='User1.pass'
+WP_USER1_DISPLAY='User1'
+
+#WP_USER2='User1'
+#WP_USER2_PASS='User2.pass'
+#WP_USER2_EMAIL='User1@example.com'
+#WP_USER2_DISPLAY='User2'
+
+WP_INST=${WP_BASE}
+
+#== wp-config.php params: =========================#
+WP_CF_EXTRA_PHP=$(cat<< END_EXTRA_PHP
+##= Start extra PHP vars  =======#
+#
+define( 'WP_HOME', 'http://${WP_URL}' );
+define( 'WP_SITEURL', 'http://${WP_URL}' );
+# define( 'WP_HOME', 'https://' . $_SERVER['SERVER_NAME'] . '/' );
+# define( 'WP_SITEURL', 'https://' . $_SERVER['SERVER_NAME'] . '/' );
+define( 'WP_POST_REVISIONS', false );
+# define( 'NOBLOGREDIRECT', 'https://${WP_URL}');
+#
+##= Start extra PHP vars  =======#
+# define('FORCE_SSL_ADMIN', true);
+# define('FORCE_SSL_LOGIN', true);
+define( 'WP_MEMORY_LIMIT', '128M' );
+#define('FTP_HOST','127.0.0.1:22');
+#define('FTP_USER','wpress');
+#define('FTP_PASS','');
+define( 'FS_METHOD', 'direct' );
+# define('WP_DEBUG', false);
+define( 'WP_DEBUG', true );
+# define('WP_DEBUG_LOG', false);
+define( 'WP_DEBUG_LOG', true );
+# define('WP_DEBUG_DISPLAY', false);
+define( 'WP_DEBUG_DISPLAY', true );
+@ini_set( 'display_errors', 1 );
+# erlog file !!
+@ini_set( 'error_log', "${WP_LOG}/php_error.log" );
+#---------------------------------------#
+# define( 'COOKIE_DOMAIN', $_SERVER[ 'HTTP_HOST' ] );
+# define( 'COOKIEPATH', preg_replace( '|https?://[^/]+|i', '', get_option( 'home' ) . '/' ) );
+# define( 'SITECOOKIEPATH', preg_replace( '|https?://[^/]+|i', '', get_option( 'siteurl' ) . '/' ) );
+# define( 'ADMIN_COOKIE_PATH', SITECOOKIEPATH . 'wp-admin' );
+# define( 'PLUGINS_COOKIE_PATH', preg_replace( '|https?://[^/]+|i', '', WP_PLUGIN_URL ) );
+# !!! END COOOKIEEES !!!!
+#---------------------------------------#
+# define('FS_CHMOD_DIR',0775);
+# define('FS_CHMOD_FILE',0664);
+# define('WP_TEMP_DIR',dirname(__FILE__).'/wp-content/tmp');
+# -> Redirect Loop solve !!!
+# define('ADMIN_COOKIE_PATH', '/');
+# define( 'COOKIE_DOMAIN', '' );
+# define('COOKIEPATH', '');
+# define('SITECOOKIEPATH', '');
+#= End extra PHP vars ============#
+END_EXTRA_PHP
+)
+#========================================================#
+#====  END env-SINGLE.sh  ===========================-EOF-#
 #__________________________________________
 
 # remember initial workig folder
@@ -87,9 +198,7 @@ wp config create  --dbhost=${WP_DBHOST}   --dbname=${WP_DBNAME}      --dbuser=${
           --path=${WP_INST}           --extra-php="${WP_CF_EXTRA_PHP}"
 # --force 
 
-# echo `pwd`
 echo -e "wp-config created, check .."
-# echo -e "wp multi to be created, .. \n\n"
 pause
 #===================================================================#
 #    
@@ -181,18 +290,22 @@ SUB_HTAccess
 #pause  
 #========================================================================#
 
+if [ "${WP_ADM1_USER:-}" ]; then
 echo -e "\n#=== Create aditional admin user with passwd .=================# \n"
 #= 2
-wp user create ${WP_ADM1_USER} ${WP_ADM1_EMAIL}  --role=administrator  --porcelain
-wp user update ${WP_ADM1_USER}  --display=${WP_ADM1_DISPLAY}    --user_pass=${WP_ADM1_PASS}  
-## wp super-admin add ${WP_ADM1_USER} 
+    wp user create ${WP_ADM1_USER} ${WP_ADM1_EMAIL}  --role=administrator  --porcelain
+    wp user update ${WP_ADM1_USER}  --display=${WP_ADM1_DISPLAY}    --user_pass=${WP_ADM1_PASS}  
+    #wp super-admin add ${WP_ADM1_USER} 
+fi
 
-wp user create ${WP_USER1}  "{WP_USER1_EMAIL}"    --role=administrator  --porcelain
-wp user update ${WP_USER1} --display=${WP_USER1_DISPLAY}  --user_pass="${WP_USER1_PASS}"
-
-wp user create ${WP_USER2}  "{WP_USER2_EMAIL}"    --role=administrator  --porcelain
-wp user update ${WP_USER2} --display=${WP_USER2_DISPLAY}  --user_pass="${WP_USER2_PASS}"
-
+if [ "${WP_USER1:-}" ]; then
+    wp user create ${WP_USER1}  "{WP_USER1_EMAIL}"    --role=administrator  --porcelain
+    wp user update ${WP_USER1} --display=${WP_USER1_DISPLAY}  --user_pass="${WP_USER1_PASS}"
+fi
+if [ "${WP_USER2:-}" ]; then
+    wp user create ${WP_USER2}  "{WP_USER2_EMAIL}"    --role=administrator  --porcelain
+    wp user update ${WP_USER2} --display=${WP_USER2_DISPLAY}  --user_pass="${WP_USER2_PASS}"
+fi
 #=============================================================================#
 
 #=== Options ... ??? =====================================#
@@ -202,9 +315,9 @@ echo -e "Set some wp options: \n"
 wp rewrite structure '/%year%/%postname%'  --hard
 # wp rewrite structure '/%postname%'  --hard
 #
-wp option set home "https://${WP_URL}"
-wp option set url  "https://${WP_URL}"
-wp option set siteurl "https://${WP_URL}"
+wp option set home "http://${WP_URL}"
+wp option set url  "http://${WP_URL}"
+wp option set siteurl "http://${WP_URL}"
 #
 wp option set blogdescription "${WP_TITLE}"
 wp option set timezone_string 'Europe/Zagreb'
